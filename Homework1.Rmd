@@ -1,0 +1,91 @@
+---
+title: "Homework1"
+author: "钱逸凌22049010"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+### Load packages and data
+
+```{r load-packages, message = FALSE}
+library(tidyverse) 
+```
+
+### Exercise 1
+从“MultiColumn_Data.csv”中读取数据，绘制堆积，分组和百分比分组条形图（以“Catergory”为Xz轴）
+```{r ex1}
+data <- read.csv("MultiColumn_Data.csv", stringsAsFactors = FALSE)
+
+data_long <- pivot_longer(data, cols = -Catergory, names_to = "Year", values_to = "Value")
+
+ggplot(data_long, aes(x = Catergory, y = Value, fill = Year)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Stacked Bar Chart", x = "Category", y = "Value") +
+  theme_minimal()
+
+ggplot(data_long, aes(x = Catergory, y = Value, fill = Year)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Grouped Bar Chart", x = "Category", y = "Value") +
+  theme_minimal()
+
+data_long <- data_long %>%
+  group_by(Catergory) %>%
+  mutate(Total = sum(Value)) %>%
+  ungroup() %>%
+  mutate(Percentage = Value / Total * 100)
+
+ggplot(data_long, aes(x = Catergory, y = Percentage, fill = Year)) +
+  geom_bar(stat = "identity", position = "fill") +
+  labs(title = "Grouped Percentage Bar Chart", x = "Category", y = "Percentage") +
+  theme_minimal()
+```
+
+### Exercise 2
+从“Hist_Density_Data.csv”中读取数据，绘制Adelaide地区MXSPD的直方图、不同核函数和窗宽的核密度估计图（至少两种不同的核函数和窗宽）。
+
+```{r ex2}
+# 读取数据
+data <- read.csv("Hist_Density_Data.csv", stringsAsFactors = FALSE)
+
+# 过滤出Adelaide地区的数据
+adelaide_data <- data[data$Location == "Adelaide", ]
+
+# 绘制直方图
+ggplot(adelaide_data, aes(x = MXSPD)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  labs(title = "Histogram of MXSPD in Adelaide", x = "MXSPD", y = "Frequency") +
+  theme_minimal()
+
+# 使用默认的窗宽
+ggplot(adelaide_data, aes(x = MXSPD)) +
+  geom_density(adjust = 1, fill = "#FF6666") +
+  labs(title = "Kernel Density Estimates of MXSPD in Adelaide (Gaussian Kernel, Default Bandwidth)", x = "MXSPD", y = "Density") +
+  theme_minimal()
+
+# 使用较大的窗宽进行平滑
+ggplot(adelaide_data, aes(x = MXSPD)) +
+  geom_density(adjust = 2, fill = "#3399FF") +
+  labs(title = "Kernel Density Estimates of MXSPD in Adelaide(Gaussian Kernel, Increased Bandwidth)", x = "MXSPD", y = "Density") +
+  theme_minimal()
+```
+
+
+### Exercise 3
+绘制不同Location的MXSPD箱线图和小提琴图以对比不同地区数据分布情况。
+
+```{r ex3}
+# 绘制箱线图
+ggplot(data, aes(x = Location, y = MXSPD, fill = Location)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of MXSPD", x = "Location", y = "MXSPD") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # 倾斜X轴标签以避免重叠
+
+# 绘制小提琴图
+ggplot(data, aes(x = Location, y = MXSPD, fill = Location)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.1, fill = "white") + # 在小提琴图中心添加箱线图以更清楚地显示数据分布
+  labs(title = "Violin Plot of MXSPD", x = "Location", y = "MXSPD") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
